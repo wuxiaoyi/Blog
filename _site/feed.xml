@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Your awesome title</title>
+    <title>wuxiaoyi的博客</title>
     <description>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
 </description>
-    <link>http://yourdomain.com/</link>
-    <atom:link href="http://yourdomain.com/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 04 Mar 2016 16:15:12 +0800</pubDate>
-    <lastBuildDate>Fri, 04 Mar 2016 16:15:12 +0800</lastBuildDate>
+    <link>http://yourdomain.com/blog/</link>
+    <atom:link href="http://yourdomain.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 04 Mar 2016 17:30:18 +0800</pubDate>
+    <lastBuildDate>Fri, 04 Mar 2016 17:30:18 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
     
       <item>
@@ -28,13 +28,116 @@
 
 </description>
         <pubDate>Fri, 04 Mar 2016 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/jekyll/update/2016/03/04/welcome-to-jekyll.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/jekyll/update/2016/03/04/welcome-to-jekyll.html</guid>
+        <link>http://yourdomain.com/blog/jekyll/update/2016/03/04/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/jekyll/update/2016/03/04/welcome-to-jekyll.html</guid>
         
         
         <category>jekyll</category>
         
         <category>update</category>
+        
+      </item>
+    
+      <item>
+        <title>大学时的几幅手绘</title>
+        <description>&lt;p&gt;今天用大学时用的笔记本，翻出了几幅以前去北航学画画时画的几幅画，好久没画画了，找时间要画几幅了，虽然画的一般，但好歹是个爱好啊- -&lt;/p&gt;
+
+&lt;p&gt;这个是用win7画图+鼠标画的：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/blog/images/post/2013-10-27/1.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这个是在宿舍画的，当时酷爱魔兽啊：&lt;/p&gt;
+
+&lt;p&gt;这个是媳妇画的，好吧，不错。。：&lt;/p&gt;
+
+&lt;p&gt;下面这3个都是去北航学画画时画的，其实我是被媳妇拽去北航陪她上课的，后来干脆我也买了套装备，没交学费就开始跟着学了。。。第三张素描感觉不错，因为以前都是画动漫的，第一次照着真人素描：&lt;/p&gt;
+</description>
+        <pubDate>Sun, 27 Oct 2013 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/other/2013/10/27/my-draw.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/other/2013/10/27/my-draw.html</guid>
+        
+        
+        <category>other</category>
+        
+      </item>
+    
+      <item>
+        <title>js数组克隆问题</title>
+        <description>&lt;p&gt;前两天工作中遇到这么一个问题，写了一个js图片插件，把页面的图片实体数组传到这个插件中进行预览，在使用插件中的删除功能后，回到页面总是发现页面的实体数组也被删除了。
+于是知道了js的浅克隆和深克隆问题。&lt;/p&gt;
+
+&lt;p&gt;浅克隆：
+concat()，slice()&lt;/p&gt;
+
+&lt;p&gt;就可以实现数组的浅克隆，但是面对数组中含有对象时，浅克隆依旧不好使，对象仍然是引用传递。
+深克隆：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;cloneObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;constructor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Array&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{};&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;hasOwnProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)){&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;object&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;cloneObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+</description>
+        <pubDate>Thu, 10 Oct 2013 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/javascript/2013/10/10/js-clone-arr.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/10/10/js-clone-arr.html</guid>
+        
+        
+        <category>javascript</category>
+        
+      </item>
+    
+      <item>
+        <title>ie下，动态改变图片src问题</title>
+        <description>&lt;p&gt;昨天在工作中遇到了个问题。&lt;/p&gt;
+
+&lt;p&gt;在ie下点击验证码换一张的时候发现没法更换，查了查，原来是需要在src后面加上random参数。
+而且看文章发现如果用a标签的话，加random参数也是不好使的，需要以href=”xxxxx();return 
+false;”来解决这个问题。&lt;/p&gt;
+</description>
+        <pubDate>Wed, 25 Sep 2013 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/javascript/2013/09/25/ie-change-img-src.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/09/25/ie-change-img-src.html</guid>
+        
+        
+        <category>javascript</category>
+        
+      </item>
+    
+      <item>
+        <title>javascript的单例实现</title>
+        <description>&lt;p&gt;最近工作之余，打算做一个html5的rpg游戏，开发中遇到了一点问题，就是主角和地图实例化的问题，因为有多个js文件都需要主角，地图对象来进行操作，于是乎就要使用单例模式了，之前没用过js写单例，研究了一下，发现跟java的思想是差不多的。&lt;/p&gt;
+
+&lt;p&gt;上代码：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Player&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;playerSingleton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;//欲实现的方法，属性&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_static&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getInstance&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;undefined&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;playerSingleton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_static&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;})();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;使用Player.getInstance()来获取player对象，就可以保证单例了&lt;/p&gt;
+</description>
+        <pubDate>Mon, 23 Sep 2013 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/javascript/2013/09/23/js-singleton.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/09/23/js-singleton.html</guid>
+        
+        
+        <category>javascript</category>
         
       </item>
     

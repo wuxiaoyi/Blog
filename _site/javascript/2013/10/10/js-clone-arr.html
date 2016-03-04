@@ -6,11 +6,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Welcome to Jekyll!</title>
-  <meta name="description" content="You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different wa...">
+  <title>js数组克隆问题</title>
+  <meta name="description" content="前两天工作中遇到这么一个问题，写了一个js图片插件，把页面的图片实体数组传到这个插件中进行预览，在使用插件中的删除功能后，回到页面总是发现页面的实体数组也被删除了。于是知道了js的浅克隆和深克隆问题。">
 
   <link rel="stylesheet" href="/blog/css/main.css">
-  <link rel="canonical" href="http://yourdomain.com/blog/jekyll/update/2016/03/04/welcome-to-jekyll.html">
+  <link rel="canonical" href="http://yourdomain.com/blog/javascript/2013/10/10/js-clone-arr.html">
   <link rel="alternate" type="application/rss+xml" title="wuxiaoyi的博客" href="http://yourdomain.com/blog/feed.xml">
 </head>
 
@@ -57,25 +57,29 @@
         <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title" itemprop="name headline">Welcome to Jekyll!</h1>
-    <p class="post-meta"><time datetime="2016-03-04T16:04:41+08:00" itemprop="datePublished">Mar 4, 2016</time></p>
+    <h1 class="post-title" itemprop="name headline">js数组克隆问题</h1>
+    <p class="post-meta"><time datetime="2013-10-10T16:04:41+08:00" itemprop="datePublished">Oct 10, 2013</time></p>
   </header>
 
   <div class="post-content" itemprop="articleBody">
-    <p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+    <p>前两天工作中遇到这么一个问题，写了一个js图片插件，把页面的图片实体数组传到这个插件中进行预览，在使用插件中的删除功能后，回到页面总是发现页面的实体数组也被删除了。
+于是知道了js的浅克隆和深克隆问题。</p>
 
-<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<p>浅克隆：
+concat()，slice()</p>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<p>就可以实现数组的浅克隆，但是面对数组中含有对象时，浅克隆依旧不好使，对象仍然是引用传递。
+深克隆：</p>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
-
-<p>Check out the <a href="http://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
-
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">cloneObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">){</span>
+  <span class="kd">var</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">===</span> <span class="nb">Array</span> <span class="p">?</span> <span class="p">[]</span> <span class="p">:</span> <span class="p">{};</span>
+  <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="nx">obj</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">i</span><span class="p">)){</span>
+      <span class="nx">o</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">===</span> <span class="s2">"object"</span> <span class="p">?</span> <span class="nx">cloneObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">:</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">o</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
 
   </div>
 
