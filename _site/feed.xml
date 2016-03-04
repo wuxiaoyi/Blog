@@ -6,8 +6,8 @@
 </description>
     <link>http://yourdomain.com/blog/</link>
     <atom:link href="http://yourdomain.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 04 Mar 2016 17:30:18 +0800</pubDate>
-    <lastBuildDate>Fri, 04 Mar 2016 17:30:18 +0800</lastBuildDate>
+    <pubDate>Fri, 04 Mar 2016 18:23:23 +0800</pubDate>
+    <lastBuildDate>Fri, 04 Mar 2016 18:23:23 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
     
       <item>
@@ -39,52 +39,205 @@
       </item>
     
       <item>
-        <title>大学时的几幅手绘</title>
-        <description>&lt;p&gt;今天用大学时用的笔记本，翻出了几幅以前去北航学画画时画的几幅画，好久没画画了，找时间要画几幅了，虽然画的一般，但好歹是个爱好啊- -&lt;/p&gt;
+        <title>validates_numericality_of的使用细节</title>
+        <description>&lt;p&gt;validates_numericality_of是activerecord中校验数字相关的方法。
+如:equal_to,:less_than,:less_than_or_equal_to等，但是在使用中发现了一些细节：&lt;/p&gt;
 
-&lt;p&gt;这个是用win7画图+鼠标画的：&lt;/p&gt;
+&lt;p&gt;例如现在有一个Product类，其price是整型，校验其价格必须小于或等于1&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/blog/images/post/2013-10-27/1.png&quot; /&gt;&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;c1&quot;&gt;# encoding: utf-8&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Product&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Base&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;validates_numericality_of&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:price&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;less_than_or_equal_to&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;这个是在宿舍画的，当时酷爱魔兽啊：&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;product&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Product&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;price&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;price&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#输出1&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;save&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;这个是媳妇画的，好吧，不错。。：&lt;/p&gt;
+&lt;p&gt;由于price字段是整型，所以ActiveRecord会自动帮我们把1.5这个浮点转换成整型1，那么现在save会怎样呢？结果是校验不通过，为什么？看看源码：
+源码在~/.rvm/gems/ruby-1.9.3-p125/gems/activemodel-3.2.21/lib/active_model/validations/numericality.rb&lt;/p&gt;
 
-&lt;p&gt;下面这3个都是去北航学画画时画的，其实我是被媳妇拽去北航陪她上课的，后来干脆我也买了套装备，没交学费就开始跟着学了。。。第三张素描感觉不错，因为以前都是画动漫的，第一次照着真人素描：&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;validate_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attr_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;before_type_cast&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;attr_name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;_before_type_cast&quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;raw_value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;before_type_cast&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;respond_to?&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;before_type_cast&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;原因是validate的时候会使用类型转换前的的值来比较，即一开始赋值的1.5，所以校验会不通过&lt;/p&gt;
 </description>
-        <pubDate>Sun, 27 Oct 2013 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/other/2013/10/27/my-draw.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/other/2013/10/27/my-draw.html</guid>
+        <pubDate>Mon, 21 Sep 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2015/09/21/validates-numericality.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2015/09/21/validates-numericality.html</guid>
         
         
-        <category>other</category>
+        <category>ruby</category>
         
       </item>
     
       <item>
-        <title>js数组克隆问题</title>
-        <description>&lt;p&gt;前两天工作中遇到这么一个问题，写了一个js图片插件，把页面的图片实体数组传到这个插件中进行预览，在使用插件中的删除功能后，回到页面总是发现页面的实体数组也被删除了。
-于是知道了js的浅克隆和深克隆问题。&lt;/p&gt;
+        <title>使用tmux</title>
+        <description>&lt;p&gt;工作中经常需要在服务器打开多个窗口来进行操作，以前总是傻傻的从本地拨多个窗口，遇到需要输入动态密码的更是麻烦至极，最近了解到了tmux这个工具。&lt;/p&gt;
 
-&lt;p&gt;浅克隆：
-concat()，slice()&lt;/p&gt;
+&lt;p&gt;常用的基本命令如下：&lt;/p&gt;
 
-&lt;p&gt;就可以实现数组的浅克隆，但是面对数组中含有对象时，浅克隆依旧不好使，对象仍然是引用传递。
-深克隆：&lt;/p&gt;
+&lt;p&gt;tmux 进入tmux
+tmux a 进入上一个tumx窗口
+Ctrl+b % - 将当前窗格垂直划分
+Ctrl+b 方向键 - 在各窗格间切换
+Ctrl+b c - (c)reate 生成一个新的窗口
+Ctrl+b n - (n)ext 移动到下一个窗口
+Ctrl+b p - (p)revious 移动到前一个窗口.
+Ctrl+b 空格键 - 采用下一个内置布局
+Ctrl+b q - 显示分隔窗口的编号
+Ctrl+b o - 跳到下一个分隔窗口
+Ctrl+b - 确认后退出 tmux
+Ctrl+b d 退出当前tmux，并不结束session&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;cloneObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;constructor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Array&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{};&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;hasOwnProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)){&lt;/span&gt;
-      &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;object&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;cloneObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;p&gt;用起来确实方便多了，mark一下&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 01 Aug 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2015/08/01/use-tmux.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2015/08/01/use-tmux.html</guid>
+        
+        
+        <category>ruby</category>
+        
+      </item>
+    
+      <item>
+        <title>ruby版本不同占用的内存变化</title>
+        <description>&lt;p&gt;今天领导分享了一个gem：&lt;a href=&quot;https://github.com/schneems/derailed_benchmarks&quot;&gt;derailed_benchmarks&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;安装之后能够清晰的看到gem，字符串对象的内存分配和占用。根据gem的内存占用情况，就可以考虑是否还要用这个gem，有没有其他的方案来代替。&lt;/p&gt;
+
+&lt;p&gt;ruby会把内存大量消耗在对象创建上面，看到了一个&lt;a href=&quot;https://github.com/rails/rails/pull/17658/files&quot;&gt;rails改进&lt;/a&gt;可以很好地说明这一点&lt;/p&gt;
+
+&lt;p&gt;activeRecord每次调用会为主键id创建一个字符串，ruby皆对象，所以每次创建一个字符串都是创建了一个对象，这个方法又是大量调用，所以这里用freeze作了改进，这个方法使得这个字符串不会被修改，类似于设置了一个常量，避免了每次去创建对象。&lt;/p&gt;
+
+&lt;p&gt;在实际项目中我们也可以注意这些问题，大量调用的方法可以使用类似的优化，比如字符串的downcase!这种，可能效果不会太明显，但是毕竟聊胜于无。&lt;/p&gt;
+</description>
+        <pubDate>Wed, 29 Apr 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2015/04/29/ruby-diff-ver-mem.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2015/04/29/ruby-diff-ver-mem.html</guid>
+        
+        
+        <category>ruby</category>
+        
+      </item>
+    
+      <item>
+        <title>二级域名操作顶级域名的cookie</title>
+        <description>&lt;p&gt;开发中遇到一个二级域名需要删除顶级域名下cookie的问题。&lt;/p&gt;
+
+&lt;p&gt;正常删除cookie的方式是：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;cookies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;delete&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:key&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;这样操作只针对当前域名的cookie，想要删除顶级域名的cookie需要这样：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;假设当前域名是&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;abc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;qwe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;com&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;cookies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;delete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:domain&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;qwe.com&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+</description>
+        <pubDate>Thu, 16 Apr 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2015/04/16/cookie-with-domain.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2015/04/16/cookie-with-domain.html</guid>
+        
+        
+        <category>ruby</category>
+        
+      </item>
+    
+      <item>
+        <title>backbone+backboneLayoutManager使用心得</title>
+        <description>&lt;p&gt;backbone+backboneLayoutManager使用了有一段时间了，backbone的基础就不说了，主要写一写自己使用时遇到的问题。
+众所周知，backbone是一个偏轻量级的前端mvc框架，虽然提供了不少灵活的特性，但是在实际开发中有时会希望它能够提供更多的api来避免重复的工作。
+backboneLayoutManager就是这样的一个插件。&lt;/p&gt;
+
+&lt;p&gt;layoutManager文档：https://github.com/tbranyen/backbone.layoutmanager/wiki&lt;/p&gt;
+
+&lt;p&gt;项目引入backboneLayoutManager后，在声明View的class时，加上manage:true就可以使用layoutmanager了，如下&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;xxxxx&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;View&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;manage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;#test&#39;&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;JST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;templates/test&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;1.render
+在仅有backbone的情况下，每个view都必须重写render方法来控制元素或子view插入到哪里，但根据backbone的思想来说，当前view的元素或者子view都是应该在该容器内来操作的，所以layoutManager会默认把元素append到当前容器内，只需要直接调用render方法即可，不必重写render。
+但是实际开发中也不可避免的遇到不想把子元素插入到当前容器内的情况，这时可以重写layoutManager的insert方法。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;insert&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;$root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;$el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;$root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;indexOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.wrapper&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.wrapper&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;before&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;$el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;$root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;$el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;这是重写的insert方法，第一个参数时父元素，new子view的时候不传默认为父容器的el，第二个为插入的元素。这个重写就是判断了传进来的$root如果超出了父容器，就放到$(“.wrapper”)前，没有的话默认append。如果在没重写insert并且传入的root超过了父容器，元素是添加不上的。
+2.template
+View在指定了template后，新建该View的对象会自动render配置的模板，用代码举个例子。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//子view&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ChildrenView&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;View&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;manage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;JST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;templates/test&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//父view&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ParentView&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;View&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;.photo-stream&#39;&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;manage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;initialize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;render&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;beforeRender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;insertView&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ChildrenView&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//Backbone.LayoutManager 会在每次 render 时清掉所有的子view。因此这里需要在每次 render 之前,加上对应的子 view&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;父view初始化时调用render，在beforeRender时会插入子view，子view自动渲染template。&lt;/p&gt;
+
+&lt;p&gt;3.sync
+这个与layoutmanager无关，是backbone的model获取数据的问题。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Notify&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Model&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;defaults&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;NotifyList&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Collection&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Notify&lt;/span&gt;
+  &lt;span class=&quot;nl&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;#{notifies_path}.json&quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;backbone支持在collection中配置url来获取数据，但是只能通过get方式来获取，其实获取数据用get方式是符合规范的。但是不免有时需要使用post方法，或者需要在httpHeader中加入auth信息等。
+这时可以重写backbone中collection的sync方法，如：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;sync&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;xx&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  
+      &lt;span class=&quot;na&quot;&gt;yy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;yy&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+    &lt;span class=&quot;nx&quot;&gt;xhr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;xhr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ajax&lt;/span&gt;
+      &lt;span class=&quot;nl&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/xxxxxx/yyyyy.json&quot;&lt;/span&gt;
+      &lt;span class=&quot;nl&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;POST&lt;/span&gt;
+      &lt;span class=&quot;nl&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;s1&quot;&gt;&#39;X-Authorize-Uid&#39;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;
+        &lt;span class=&quot;s1&quot;&gt;&#39;X-Authorize-Token&#39;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;22&lt;/span&gt;
+        &lt;span class=&quot;s1&quot;&gt;&#39;Client-Id&#39;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;33&#39;&lt;/span&gt;
+      &lt;span class=&quot;nl&quot;&gt;contentType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;application/x-www-form-urlencoded; charset=UTF-8&#39;&lt;/span&gt;
+      &lt;span class=&quot;nl&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;done&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;//回调&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;trigger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;request&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;xhr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;xhr&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;这样在collection对象使用fetch方法时，就会调用你重写的方法了。跟源码中一样返回了一个ajax对象，为了在更上层的方法中可以继续做回调相关的操作。&lt;/p&gt;
+
+&lt;p&gt;4.getView
+个人感觉layoutManager提供了一个非常好用的方法getView({model: xxxx})，在前端交互时，经常会遇到用过model来操作数据，然后再反馈给view做页面上的变化，以前往往需要得到model在collection的下标，再去view中查找该子view进行操作，有了个这个getView方法后就不用了，这个方法可以通过你操作的model直接获取到该model所属的子view，方便了很多。&lt;/p&gt;
+
+&lt;p&gt;就先这么多，以后再更新&lt;/p&gt;
 </description>
-        <pubDate>Thu, 10 Oct 2013 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/javascript/2013/10/10/js-clone-arr.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/10/10/js-clone-arr.html</guid>
+        <pubDate>Mon, 13 Apr 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/javascript/2015/04/13/backbone-and-layoutmanager.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2015/04/13/backbone-and-layoutmanager.html</guid>
         
         
         <category>javascript</category>
@@ -92,52 +245,104 @@ concat()，slice()&lt;/p&gt;
       </item>
     
       <item>
-        <title>ie下，动态改变图片src问题</title>
-        <description>&lt;p&gt;昨天在工作中遇到了个问题。&lt;/p&gt;
-
-&lt;p&gt;在ie下点击验证码换一张的时候发现没法更换，查了查，原来是需要在src后面加上random参数。
-而且看文章发现如果用a标签的话，加random参数也是不好使的，需要以href=”xxxxx();return 
-false;”来解决这个问题。&lt;/p&gt;
+        <title>vim作弊图，碉堡</title>
+        <description>&lt;p&gt;vim作弊图，碉堡&lt;/p&gt;
 </description>
-        <pubDate>Wed, 25 Sep 2013 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/javascript/2013/09/25/ie-change-img-src.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/09/25/ie-change-img-src.html</guid>
+        <pubDate>Thu, 02 Apr 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/vim/2015/04/02/vim.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/vim/2015/04/02/vim.html</guid>
         
         
-        <category>javascript</category>
+        <category>vim</category>
         
       </item>
     
       <item>
-        <title>javascript的单例实现</title>
-        <description>&lt;p&gt;最近工作之余，打算做一个html5的rpg游戏，开发中遇到了一点问题，就是主角和地图实例化的问题，因为有多个js文件都需要主角，地图对象来进行操作，于是乎就要使用单例模式了，之前没用过js写单例，研究了一下，发现跟java的思想是差不多的。&lt;/p&gt;
+        <title>使用devise时，登录失败devise只抛出401</title>
+        <description>&lt;p&gt;接触ruby后，第一次使用devise，在处理登录失败错误的时候，发现devise并没有抛出相关的error_message，只是抛出了401错误，所以前端使用devise的resource.errors.full_messages方法是并没有错误输出。&lt;/p&gt;
 
-&lt;p&gt;上代码：&lt;/p&gt;
+&lt;p&gt;小研究了一下，发现登录错误是通过rails抛出的。输出falsh的时候发现包含了登录失败的message。而例如注册时用户名被占用是在devise的error_message中，因为注册时devise会先查询一下该用户名，如果被占用了，就会返回devise的错误提示。&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Player&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;playerSingleton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;//欲实现的方法，属性&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_static&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;getInstance&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;undefined&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
-        &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;playerSingleton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_static&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;})();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;p&gt;解决方法：&lt;/p&gt;
 
-&lt;p&gt;使用Player.getInstance()来获取player对象，就可以保证单例了&lt;/p&gt;
+&lt;p&gt;在applicationHelper里加了个方法处理flash中的错误，方法只处理了alert，如果有需要的话也可以加上notice：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;notice_message&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;flash_messages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;flash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_sym&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:alert&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;content_tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:small&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:class&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;error&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;flash_messages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;flash_messages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;html_safe&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;而devise的错误直接用resource.errors.full_messages输出就可以了&lt;/p&gt;
 </description>
-        <pubDate>Mon, 23 Sep 2013 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/javascript/2013/09/23/js-singleton.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/javascript/2013/09/23/js-singleton.html</guid>
+        <pubDate>Sat, 07 Mar 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2015/03/07/ruby-devise.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2015/03/07/ruby-devise.html</guid>
         
         
-        <category>javascript</category>
+        <category>ruby</category>
+        
+      </item>
+    
+      <item>
+        <title>使用docker时出现“Could not resolve &#39;archive.ubuntu.com&#39;” 解决办法</title>
+        <description>&lt;p&gt;我在使用docker的时候遇到了这个问题，问题出现在dns无法解析这个域名。&lt;/p&gt;
+
+&lt;p&gt;google了一下，使用命令export DOCKER_OPTS=”–dns 8.8.8.8 –dns 8.8.4.4”可以解决这个问题。&lt;/p&gt;
+
+&lt;p&gt;但实际上最好先把dns缓存清除，并且重启docker，把之前build到一半的image删除再重新build比较好，因为我一开始没有进行这些操作还是出现了无法解析的问题。&lt;/p&gt;
+
+&lt;p&gt;build的时候也可以使用–no-cache来从新build image。&lt;/p&gt;
+
+&lt;p&gt;另外，删除images的时候，先用docker images查看当前image，使用docker rmi imageid删除image，可能出现无法删除成功的情况，因为该image正在使用，需要先停止它的container，docker ps -a 查看运行的container，docker stop containerid&lt;/p&gt;
+</description>
+        <pubDate>Tue, 03 Feb 2015 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/docker/2015/02/03/docker-error.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/docker/2015/02/03/docker-error.html</guid>
+        
+        
+        <category>docker</category>
+        
+      </item>
+    
+      <item>
+        <title>linux下shell脚本自动输入--expect</title>
+        <description>&lt;p&gt;最近日常开发中遇到了这个问题，程序生成的一个文件需要同步到多台服务器，而跑phpfpm进程的用户跟欲同步目录的所有者不一样，所以用sshkeygen也没法做到。于是写了这个脚本。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;  &lt;span class=&quot;c&quot;&gt;#!/usr/bin/expect&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;timeout 30
+  spawn scp /www/file1 user1@xx.xx.xx.xx:/home/user1/files
+  expect &lt;span class=&quot;s2&quot;&gt;&quot;*password*&quot;&lt;/span&gt;
+  send &lt;span class=&quot;s2&quot;&gt;&quot;123123&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+  expect EOF&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;1.#!/usr/bin/expect，首页要引入expect，否则无法使用&lt;/p&gt;
+
+&lt;p&gt;2.设置超时时间&lt;/p&gt;
+
+&lt;p&gt;3.必须使用spawn进行命令操作，否则expect无法捕捉到&lt;/p&gt;
+
+&lt;p&gt;4.最爽的一步，用expect捕捉接下来出现的命令提示，一般都是请输入密码之类的文字，根据实际情况来定义&lt;/p&gt;
+
+&lt;p&gt;5.输入你的密码，\r是回车的意思&lt;/p&gt;
+
+&lt;p&gt;6.注意要使用expect EOF结束，否则你会发现命令不会执行成功&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;更新：发现其实在目标服务器用户下加个authorized_keys就可以了，比这个安全也简单。&lt;/strong&gt;&lt;/p&gt;
+</description>
+        <pubDate>Wed, 30 Jul 2014 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</guid>
+        
+        
+        <category>linux</category>
         
       </item>
     

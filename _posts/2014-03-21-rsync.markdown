@@ -1,0 +1,48 @@
+---
+layout: post
+title:  "rsync使用心得"
+date:   2014-03-21 16:04:41 +0800
+categories: linux
+---
+
+最近学习配置和使用了rsync，粗浅的写一下心得
+rsync是服务端A向客户端B同步内容，首先，双方要开启rsync，
+
+命令：/usr/bin/rsync --daemon --config=/etc/rsyncd.conf，rsyncd.conf是rsync的配置文件，需要自己手动创建。
+
+例如，在服务端A执行同步命令：
+
+rsync -avP  /home/testdir/* --password-file=/etc/my.pass nobody@192.168.1.11::testdir
+
+含义为：同步服务端A /home/testdir下的所有文件到192.168.1.11的testdir，通过192.168.1.11的nobody用户，testdir是在192.168.1.11的rsyncd.conf中配置的，/etc/my.pass是服务端保存的同步密码
+
+客户端rsyncd.conf配置：
+
+[testdir]
+path = /home/testdir
+auth users = nobody
+uid = nobody
+gid = nobody
+secrets file = /etc/rsync.pass
+read only = no
+hosts allow = *
+
+服务端my.pass配置，只需要写下密码，并设置600权限（必须）：
+
+123456
+
+客户端/etc/rsync.pass配置，需要写下用户名和密码，并设置600权限（必须）：
+
+nobdy:123456
+
+理论上这样配置就ok了。
+
+常见错误：
+
+@ERROR: chdir failed是客户端没有该目录或该目录权限不足
+
+@ERROR: auth failed on module xxxxx是双方使用的用户或密码不一致
+
+password file must not be other-accessible密码文件权限错误
+
+@ERROR: access denied to www from unknown是hostallow设置问题

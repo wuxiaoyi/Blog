@@ -1,0 +1,26 @@
+---
+layout: post
+title:  "crontab定时任务快速上手"
+date:   2014-05-10 16:04:41 +0800
+categories: linux
+---
+
+crond 是linux用来定期执行程序的命令。
+
+首先要保证crontab服务已经启动，可以使用/sbin/service crond start/stop/restart/reload命令。
+
+然后crontab -e进入crontab编辑。
+
+例如：01 * * * * /usr/local/php/bin/php  /task/collectdata.php
+
+01表示分钟，这个命令的意思是每小时的第一分钟使用php跑这个collectdata.php脚本
+
+第二个*表示小时，如01 10 * * * 是每天的10点01执行
+
+第三个*表示日，如01 10 01 * *是每月的1号的10点01执行
+
+第四个*表示月，如01 10 01 01 *是年第一个月的1号的10点01执行
+
+第五个*表示周，如01 10 * * 0 是每周日（0~6,0为周日）10点01执行
+
+编辑完记住reload服务

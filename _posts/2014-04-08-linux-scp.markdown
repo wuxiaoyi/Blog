@@ -1,0 +1,21 @@
+---
+layout: post
+title:  "linux scp命令"
+date:   2013-10-10 16:04:41 +0800
+categories: linux
+---
+
+
+scp命令是linux上用于远程拷贝文件的命令。
+
+1.从远程拷贝到本地
+
+scp root@192.168.1.1:/usr/local/nginx.conf /usr/local
+
+如果是文件夹，需要在scp后面加-r
+
+scp -r root@192.168.1.1:/usr/local/nginx /usr/local
+
+2.从本地拷贝到远程
+
+scp -r /usr/local/nginx root@192.168.1.1:/usr/local

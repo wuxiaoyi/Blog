@@ -1,0 +1,8 @@
+---
+layout: post
+title:  "vim作弊图，碉堡"
+date:   2015-04-02 16:04:41 +0800
+categories: vim
+---
+
+vim作弊图，碉堡

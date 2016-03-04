@@ -1,0 +1,26 @@
+---
+layout: post
+title:  "使用tmux"
+date:   2015-08-01 16:04:41 +0800
+categories: ruby
+---
+
+工作中经常需要在服务器打开多个窗口来进行操作，以前总是傻傻的从本地拨多个窗口，遇到需要输入动态密码的更是麻烦至极，最近了解到了tmux这个工具。
+
+常用的基本命令如下：
+
+tmux 进入tmux
+tmux a 进入上一个tumx窗口
+Ctrl+b % - 将当前窗格垂直划分
+Ctrl+b 方向键 - 在各窗格间切换
+Ctrl+b c - (c)reate 生成一个新的窗口
+Ctrl+b n - (n)ext 移动到下一个窗口
+Ctrl+b p - (p)revious 移动到前一个窗口.
+Ctrl+b 空格键 - 采用下一个内置布局
+Ctrl+b q - 显示分隔窗口的编号
+Ctrl+b o - 跳到下一个分隔窗口
+Ctrl+b - 确认后退出 tmux
+Ctrl+b d 退出当前tmux，并不结束session
+
+用起来确实方便多了，mark一下
+
