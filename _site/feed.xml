@@ -6,8 +6,8 @@
 </description>
     <link>http://yourdomain.com/blog/</link>
     <atom:link href="http://yourdomain.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 04 Mar 2016 18:23:23 +0800</pubDate>
-    <lastBuildDate>Fri, 04 Mar 2016 18:23:23 +0800</lastBuildDate>
+    <pubDate>Mon, 07 Mar 2016 10:28:34 +0800</pubDate>
+    <lastBuildDate>Mon, 07 Mar 2016 10:28:34 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
     
       <item>
@@ -35,6 +35,89 @@
         <category>jekyll</category>
         
         <category>update</category>
+        
+      </item>
+    
+      <item>
+        <title>配置 gitlab-ci 进行持续集成</title>
+        <description>&lt;p&gt;在日常工作中，我们经常会写一些单元测试来确保程序可以正确执行，但是写完单元测试后常常会面临这些问题：&lt;/p&gt;
+
+&lt;p&gt;有一些小改动懒得跑单元测试
+别人改动相关代码影响了你的代码逻辑，但他们不知道你写过这些单元测试或者没有跑单元测试的习惯
+项目大了，单元测试很多，跑一遍要花很长时间
+这时候可以选择进行持续集成&lt;/p&gt;
+
+&lt;p&gt;进行持续集成有很多种方式，介绍一下使用gitlab-ci进行持续集成的配置方式。&lt;/p&gt;
+
+&lt;p&gt;准备&lt;/p&gt;
+
+&lt;p&gt;gitlab版本升级的很快，公司的gitlab是在去年5月份安装的，当时的版本还是7.10，现在已然发布到8.3了。
+建议把gitlab升级到8.0以上，8.0以上的版本自动集成了gitlab-ci的功能，无需再自己配置一个gitlab-ci-server了。google gitlabci相关的内容很多都是基于8.0以上介绍的。并且gitlab7.12以上版本支持使用.gitlab-ci.yml进行ci配置，自己搭建gitlab-ci的话很容易出现ci版本和gitlab不一致导致找不到.gitlab-ci.yml的问题。
+升级方式就不详细说了，详见https://about.gitlab.com/update/
+公司之前用的Omnibus gitlab，升级很方便，直接yum install就ok了，升级前记得备份数据库。&lt;/p&gt;
+
+&lt;p&gt;gitlab开启build功能&lt;/p&gt;
+
+&lt;p&gt;gitlab项目下-》Project-Settings-》Features里的Builds选项勾上-》保存-》完事儿
+开启后会发现菜单多了几个功能，打开runners，里面有token和url，下面配置runner时会用到。&lt;/p&gt;
+
+&lt;p&gt;配置ci-runner&lt;/p&gt;
+
+&lt;p&gt;首先安装gitlab-ci-multi-runner，之前有一个runner是gitlab-ci-runner，这个runner的代码已经不再维护了，不要装错。
+安装完成后启动：gitlab-ci-multi-runner start
+注册一个新的runner： gitlab-cimulti-runner register ，提示输入url和token，输入上一步runners里的内容就行了，runner的名字随便输入。然后提示选择executer，个人选的shell，还可以选择docker和ssh
+完成后刷新gitlab的runner页面，可以看到刚才注册的runner
+配置gitlab-workhouse&lt;/p&gt;
+
+&lt;p&gt;之前公司没有使用gitlab内置的nginx，而是自己起的nginx做配置。这种情况可能导致build的时候git clone不下代码，会报这个错误：
+fatal: reference is not a tree
+google了一下，建议的解决办法就是使用gitlab内置的一个gitlab_git_http_server，好像是8.2之后的版本改名成了gitlab-workhouse。
+/etc/gitlab/gitlab.rb中增加配置：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;gitlab_workhorse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;listen_network&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tcp&quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;gitlab_workhorse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;listen_addr&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;127.0.0.1:8181&quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;nginx增加配置：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gitlab_repo&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;127&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8181&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fail_timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;127&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8181&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fail_timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#gitlab的server配置中增加&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;proxy_read_timeout&lt;/span&gt;      &lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;proxy_connect_timeout&lt;/span&gt;   &lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;proxy_redirect&lt;/span&gt;          &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+      &lt;span class=&quot;n&quot;&gt;proxy_set_header&lt;/span&gt;   &lt;span class=&quot;no&quot;&gt;Host&lt;/span&gt;              &lt;span class=&quot;vg&quot;&gt;$http_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;proxy_set_header&lt;/span&gt;   &lt;span class=&quot;no&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Forwarded&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;For&lt;/span&gt;   &lt;span class=&quot;vg&quot;&gt;$proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:/&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gitlab_repo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;###.gitlab-ci.yml配置
+在项目的根目录下创建.gitlab-ci.yml，下面是跑单元测试的配置，当然还可以干很多别的。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;ss&quot;&gt;before_script:
+    &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;yml&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sample&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;yml&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vendor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;without&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;development&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;bundle exec rake db:create RAILS_ENV=test&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;bundle exec rake db:migrate RAILS_ENV=test&quot;&lt;/span&gt;
+  &lt;span class=&quot;ss&quot;&gt;job1:
+    script: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;RAILS_ENV=test rake test:units&#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;进阶配置请参考文档&lt;/p&gt;
+
+&lt;p&gt;到此配置完成，从此之后每一个push都会触发ci进行build，提交Merge quest后也会有相关build结果提示，再也不用担心小伙伴们忘跑单元测试了。&lt;/p&gt;
+
+&lt;p&gt;##TODO
+其实不需要每个push都触发build的，希望只在提交MR后触发一次build，在和代码之前看到build结果就可以了。还在研究，希望有了解的同学能指点一下。&lt;/p&gt;
+</description>
+        <pubDate>Sun, 07 Feb 2016 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2016/02/07/use-gitlab-ci.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2016/02/07/use-gitlab-ci.html</guid>
+        
+        
+        <category>ruby</category>
         
       </item>
     
@@ -309,40 +392,6 @@ View在指定了template后，新建该View的对象会自动render配置的模�
         
         
         <category>docker</category>
-        
-      </item>
-    
-      <item>
-        <title>linux下shell脚本自动输入--expect</title>
-        <description>&lt;p&gt;最近日常开发中遇到了这个问题，程序生成的一个文件需要同步到多台服务器，而跑phpfpm进程的用户跟欲同步目录的所有者不一样，所以用sshkeygen也没法做到。于是写了这个脚本。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;  &lt;span class=&quot;c&quot;&gt;#!/usr/bin/expect&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;timeout 30
-  spawn scp /www/file1 user1@xx.xx.xx.xx:/home/user1/files
-  expect &lt;span class=&quot;s2&quot;&gt;&quot;*password*&quot;&lt;/span&gt;
-  send &lt;span class=&quot;s2&quot;&gt;&quot;123123&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-  expect EOF&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;1.#!/usr/bin/expect，首页要引入expect，否则无法使用&lt;/p&gt;
-
-&lt;p&gt;2.设置超时时间&lt;/p&gt;
-
-&lt;p&gt;3.必须使用spawn进行命令操作，否则expect无法捕捉到&lt;/p&gt;
-
-&lt;p&gt;4.最爽的一步，用expect捕捉接下来出现的命令提示，一般都是请输入密码之类的文字，根据实际情况来定义&lt;/p&gt;
-
-&lt;p&gt;5.输入你的密码，\r是回车的意思&lt;/p&gt;
-
-&lt;p&gt;6.注意要使用expect EOF结束，否则你会发现命令不会执行成功&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;更新：发现其实在目标服务器用户下加个authorized_keys就可以了，比这个安全也简单。&lt;/strong&gt;&lt;/p&gt;
-</description>
-        <pubDate>Wed, 30 Jul 2014 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</guid>
-        
-        
-        <category>linux</category>
         
       </item>
     
