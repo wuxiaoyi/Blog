@@ -6,9 +6,102 @@
 </description>
     <link>http://yourdomain.com/blog/</link>
     <atom:link href="http://yourdomain.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 07 Mar 2016 10:33:10 +0800</pubDate>
-    <lastBuildDate>Mon, 07 Mar 2016 10:33:10 +0800</lastBuildDate>
+    <pubDate>Sun, 03 Apr 2016 14:52:27 +0800</pubDate>
+    <lastBuildDate>Sun, 03 Apr 2016 14:52:27 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>关于乐观锁的重试</title>
+        <description>&lt;h3 id=&quot;section&quot;&gt;关于乐观锁的重试&lt;/h3&gt;
+
+&lt;p&gt;锁相关的知识可以参考 @zamia 的这篇文章 &lt;a href=&quot;https://ruby-china.org/topics/28963&quot;&gt;https://ruby-china.org/topics/28963&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;这篇文章算是一点小小的补充&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;如何本地复现乐观锁冲突&lt;/h3&gt;
+
+&lt;p&gt;在访问量大的线上环境，使用了乐观锁的地方是有可能出现StaleObjectError的异常的，本地如何复现呢？这个有个小方法（可能比较low）&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;使用byebug这个gem，在锁的事务中加上byebug调试，例：&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;假设这是一个库存的对象，库存比较容易出现抢锁的情况&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unforzen&lt;/span&gt;
+      &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;with_lock&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;byebug&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;frozen_num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;save!&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;开两个console，获取两个对象（stock_a和stock_b）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;调用stock_a.unforzen，会进入到如下调试模式，可以看到已经进入到事务中了：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://ruby-china-files.b0.upaiyun.com/photo/2016/116ce53845c1853ffd5b0901b3098f96.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;然后调用stock_b.unforzen，跟a相同，也进入到了事务，这时将a的代码执行完，next是单步执行，continue是执行到下一个断点。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;执行b的代码，这时你会发现b的unforzen方法抛出了 StaleObjectError的异常&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;###准备工作结束，如何重试&lt;/p&gt;
+
+&lt;p&gt;值得注意的一点是，reload需要给参数lock: true，否则lock_version是不会更新的&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unforzen&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;optimistic_lock_retry_times&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;begin&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;with_lock&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;byebug&lt;/span&gt;
+      &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;frozen_num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+      &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;save!&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;StaleObjectError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;optimistic_lock_retry_times&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optimistic_lock_retry_times&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+          &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;reload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;lock: &lt;/span&gt;&lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;k&quot;&gt;retry&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+          &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;一点疑问&lt;/h3&gt;
+
+&lt;p&gt;其实实际的代码要比例子复杂一点，这个释放库存的功能是通过一个service调用的，异常统一在service中处理，但是service不能直接获取到出现锁异常的record，我尝试过error.record.reload(lock: true)，如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;StaleObjectError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock_version&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;reload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;lock: &lt;/span&gt;&lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock_version&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;retry&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;发现lock_version是变了的，但是重新retry的代码中的record的lock_version还是原来的。这块还没仔细研究原理，懂得同学也可以分享一下~&lt;/p&gt;
+</description>
+        <pubDate>Sun, 20 Mar 2016 16:04:41 +0800</pubDate>
+        <link>http://yourdomain.com/blog/ruby/2016/03/20/rails-lock-conflict.html</link>
+        <guid isPermaLink="true">http://yourdomain.com/blog/ruby/2016/03/20/rails-lock-conflict.html</guid>
+        
+        
+        <category>ruby</category>
+        
+      </item>
     
       <item>
         <title>配置 gitlab-ci 进行持续集成</title>
@@ -364,40 +457,6 @@ View在指定了template后，新建该View的对象会自动render配置的模�
         
         
         <category>docker</category>
-        
-      </item>
-    
-      <item>
-        <title>linux下shell脚本自动输入--expect</title>
-        <description>&lt;p&gt;最近日常开发中遇到了这个问题，程序生成的一个文件需要同步到多台服务器，而跑phpfpm进程的用户跟欲同步目录的所有者不一样，所以用sshkeygen也没法做到。于是写了这个脚本。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;  &lt;span class=&quot;c&quot;&gt;#!/usr/bin/expect&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;timeout 30
-  spawn scp /www/file1 user1@xx.xx.xx.xx:/home/user1/files
-  expect &lt;span class=&quot;s2&quot;&gt;&quot;*password*&quot;&lt;/span&gt;
-  send &lt;span class=&quot;s2&quot;&gt;&quot;123123&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-  expect EOF&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;1.#!/usr/bin/expect，首页要引入expect，否则无法使用&lt;/p&gt;
-
-&lt;p&gt;2.设置超时时间&lt;/p&gt;
-
-&lt;p&gt;3.必须使用spawn进行命令操作，否则expect无法捕捉到&lt;/p&gt;
-
-&lt;p&gt;4.最爽的一步，用expect捕捉接下来出现的命令提示，一般都是请输入密码之类的文字，根据实际情况来定义&lt;/p&gt;
-
-&lt;p&gt;5.输入你的密码，\r是回车的意思&lt;/p&gt;
-
-&lt;p&gt;6.注意要使用expect EOF结束，否则你会发现命令不会执行成功&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;更新：发现其实在目标服务器用户下加个authorized_keys就可以了，比这个安全也简单。&lt;/strong&gt;&lt;/p&gt;
-</description>
-        <pubDate>Wed, 30 Jul 2014 16:04:41 +0800</pubDate>
-        <link>http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</link>
-        <guid isPermaLink="true">http://yourdomain.com/blog/linux/2014/07/30/shell-except.html</guid>
-        
-        
-        <category>linux</category>
         
       </item>
     
