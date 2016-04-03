@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "如何写测试"
-date:   2016-04-03 16:04:41 +0800
+title:  "Rails如何写测试"
+date:   2016-04-03 11:04:41 +0800
 categories: ruby
 ---
 
+本帖只是个人总结的一些实践经验，适用于一些不太会写测试的同学，高手请指教
 
 ### 为什么要写单元测试？
 
@@ -13,6 +14,8 @@ categories: ruby
   - 现在的测试是为了避免以后的麻烦。当一个功能比较复杂，关系到比较重要的业务或者难以进行黑盒测试的时候，或许在你开发的时候你很有信心，相信这里不会出现bug。但过了几个月甚至一年，你需要扩展功能或者别人需要接手你的代码时，这就会令人头疼了（尤其是公司没有测试工程师！）。
 
   - 依赖于第三方服务的功能，比如支付回调，支付平台退款。在本地环境无法以正确的数据调用第三方服务，这时候可以用测试来mock返回值，以便进行后续开发。
+
+  - 节约回归测试的时间，每次回归测试都要跑的case可以写成单元测试
 
 个人认为，如果开发时间充裕，尽可能的写测试覆盖全部功能。如果时间不够，比如在创业公司，测试最好也能够覆盖service和api
 
@@ -124,7 +127,8 @@ categories: ruby
 
     个人总结了两个方法来mock
 
-    - 使用Minitest::Mock
+  1.使用Minitest::Mock
+
     {% highlight ruby %}
       def execute
         service_a = ServiceA.new
@@ -149,7 +153,8 @@ categories: ruby
       end
     {% endhighlight %} 
 
-    - 使用Class.new
+  2.使用Class.new
+
     {% highlight ruby %}
       def execute
         service_a = ServiceA.new
@@ -174,7 +179,5 @@ categories: ruby
 
 
 ##先总结这么多
-
-
 
 
